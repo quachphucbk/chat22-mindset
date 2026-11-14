@@ -1,8 +1,7 @@
-1. Produtuct Overview (mô tả sản phẩm và mục tiêu)
+###1. Produtuct Overview (mô tả sản phẩm và mục tiêu)
 	- sản phẩm Ai quản lý công nghiệp và cam kết thoại
 	- lĩnh vực tin nhắn  và doanh nghiệp
-2. User Stories (mô tả nhu cầu của từng người dùng)
-	## 2. User Stories — Nhu cầu người dùng
+###2. User Stories (mô tả nhu cầu của từng người dùng)
 
 trưởng nhóm và thành viên là 2 vai trò phân quyền.
 
@@ -33,8 +32,7 @@ Thứ tự thực hiện us để tạo lát cắt :
 | **3. Theo dõi thay đổi** | **Thêm US07**, mở rộng US08, US04 và US06 | Nhận diện đổi hạn, đổi người, hoàn thành; duyệt cập nhật; xem trạng thái mới và lịch sử |
 | **4. Nhắc việc** | **Thêm US09** | Xem trước, phê duyệt và nhận nhắc việc dựa trên task đã xác nhận |
 	
-3. Functional requirements (liệt kê chức năng hệ thống)
-## 3. Functional Requirements — Chức năng hệ thống
+###3. Functional requirements (liệt kê chức năng hệ thống)
 
 | ID | Chức năng | Yêu cầu chính |
 |---|---|---|
@@ -60,8 +58,8 @@ Thứ tự thực hiện us để tạo lát cắt :
 
 **Lưu ý:** Cách nhập dữ liệu và bộ lọc là đề xuất thiết kế. Đề bài ghi đầu ra cơ bản/nâng cao là gợi ý; phạm vi phiên bản đầu sẽ được chốt tại phần MVP.
 
-4. Business Rules (xác định quy tắc xử lý công việc)
-## 4. Business Rules — Quy tắc xử lý công việc
+###4. Business Rules (xác định quy tắc xử lý công việc)
+
 
 **Quy tắc từ đề bài:**
 
@@ -87,7 +85,7 @@ Thứ tự thực hiện us để tạo lát cắt :
 | BR13 | Duyệt công việc không đồng nghĩa duyệt nhắc việc; thay đổi nội dung, người nhận hoặc thời điểm nhắc phải được duyệt lại. |
 | BR14 | Khi nguồn bị sửa, xóa hoặc xuất hiện thông tin mâu thuẫn, đưa kết quả liên quan vào trạng thái cần rà soát. |
 
-5. Data Requirements (xác định dữ lieu đầu và)
+###5. Data Requirements (xác định dữ lieu đầu và)
 6. Non-Functional Requirements (hiệu năng, bảo mật, độ tin cậy)
 7. Acceptance criteria ( điều kiện kiểm thử và nghiệm thu)
 8 MVP Scope (chọn những chức năng cần làm trong phiên bản đầu)
