@@ -26,6 +26,7 @@ trưởng nhóm và thành viên là 2 vai trò phân quyền.
 - **US12 — Trưởng nhóm:** Xem xung đột, thông tin chưa chắc chắn và nguy cơ bỏ sót để xử lý sớm.
 - **US13 — Trưởng nhóm:** Xem tổng hợp khối lượng công việc để điều phối nhân sự.
 - **US14 — Trưởng nhóm, Thành viên:** Phê duyệt đưa công việc vào lịch để quản lý thời gian.
+
 Thứ tự thực hiện us để tạo lát cắt :
 | Lát cắt | US thực hiện theo thứ tự | Kết quả sử dụng được |
 |---|---|---|
