@@ -12,7 +12,7 @@ new vm.Script(source);
 const elements = {}, timers = [], listeners = {}, saved = {};
 function element(id) {
   return elements[id] ||= {
-    id, innerHTML: '', hidden: false, open: false, className: '',
+    id, innerHTML: '', hidden: false, open: false, className: '', dataset: {}, values: {},
     classList: { toggle() {}, add() {}, remove() {} },
     addEventListener() {}, append() {}, remove() {}, focus() {}, scrollIntoView() {},
     querySelector() { return null; },
@@ -52,9 +52,9 @@ test('Cú pháp và HTML tự chứa', () => {
   assert.match(html, /<html lang="vi">/);
   assert.doesNotMatch(html, /<script[^>]+src=|<link[^>]+href=["']https?:/);
 });
-test('Sáu màn hình render ở cả hai vai trò', () => ok("['Lan','Nam'].every(user=>{db.user=user;return ['tasks','conversations','review','reminders','evaluation','guide'].every(page=>{ui.page=page;render();return document.getElementById('app').innerHTML.length>3000})})"));
-test('Mười ghi chú có đủ trường và bật mặc định', () => ok("db.notes&&Object.keys(NOTES).length===10&&Object.values(NOTES).every(n=>n.length===6&&n.every(Boolean))"));
-test('Bảng đối chiếu đủ FR và BR', () => ok('FR.length===10&&BR.length===14'));
+test('Bảy màn hình render ở cả bốn tài khoản demo', () => ok("PEOPLE.every(user=>{db.user=user;return ['tasks','conversations','review','reminders','evaluation','guide','confirmations'].every(page=>{ui.page=page;render();return document.getElementById('app').innerHTML.length>3000})})"));
+test('Mười một ghi chú có đủ trường và bật mặc định', () => ok("db.notes&&Object.keys(NOTES).length===11&&Object.values(NOTES).every(n=>n.length===6&&n.every(Boolean))"));
+test('Bảng đối chiếu đủ FR, FR10s và BR', () => ok("FR.length===11&&FR.some(r=>r[0]==='FR10s')&&BR.length===14"));
 test('Đồng hồ quá hạn cố định', () => ok("visibleTasks().filter(overdue).length===1&&overdue(db.tasks.find(t=>t.id==='T-004'))"));
 test('Chưa duyệt không đổi deadline', () => ok("db.tasks[0].due==='2026-11-20T17:00:00+07:00'&&db.proposals[0].due==='2026-11-23T17:00:00+07:00'"));
 test('Duyệt cập nhật, giữ giờ nhắc và yêu cầu rà soát', () => ok("approveProposal('Q-001')&&db.tasks[0].due==='2026-11-23T17:00:00+07:00'&&db.reminders[0].review&&db.reminders[0].at==='2026-11-20T09:00:00+07:00'"));
@@ -123,6 +123,76 @@ test('Đặt lại demo có bước xác nhận riêng', () => {
   run("db.tasks.pop()"); click('reset'); ok("db.tasks.length===4&&ui.modal.type==='reset'");
   click('confirm-reset'); ok("db.tasks.length===5&&db.proposals.length===4&&db.reminders.length===1");
 });
+
+// FR10s: dùng cùng store, bộ phân quyền và router với prototype thật.
+test('FR10s: migrate dữ liệu cũ không mất task hoặc đề xuất', () => ok("(()=>{const tasks=db.tasks.length,proposals=db.proposals.length;delete db.manualRequests;delete db.notifications;delete db.manualSeq;ensureManualState();return tasks===db.tasks.length&&proposals===db.proposals.length&&db.manualRequests.length===0&&db.notifications.length===0})()"));
+test('FR10s: nút tạo tại Inbox và từng tin nhắn', () => ok("renderInbox().includes('Thêm công việc')&&messageHTML(getConv('launch').messages[0],'launch').includes('Tạo công việc từ tin nhắn')&&renderConfirmations().includes('Chờ xác nhận')"));
+test('FR10s: Nam tạo, Lan nhận đúng thông báo, chưa vào Inbox', () => ok("(()=>{db.user='Nam';const r=sendManualRequest({title:'Kiểm tra API',owner:'Nam'});const before=db.tasks.length;if(!r||r.confirmer!=='Lan'||r.due!==null||r.status!=='Chờ xác nhận'||manualNotifications().length)return false;db.user='Lan';return unreadManualCount()===1&&manualActions()[0].id===r.id&&db.tasks.length===before&&r.origin==='Người dùng tạo thủ công'})()"));
+test('FR10s: Lan đồng ý việc Nam tạo, không tự tạo reminder', () => ok("(()=>{db.user='Nam';const r=sendManualRequest({title:'Kiểm tra API',owner:'Nam'}),count=db.reminders.length;db.user='Lan';return decideManual(r.id,'accept','',r.revision)&&r.status==='Đã xác nhận'&&getTask(r.taskId).title==='Kiểm tra API'&&getTask(r.taskId).due===null&&getTask(r.taskId).createdBy==='Nam'&&getTask(r.taskId).confirmedBy==='Lan'&&db.reminders.length===count})()"));
+test('FR10s: trưởng nhóm giao Nam cần Nam xác nhận nhận việc', () => ok("(()=>{const r=sendManualRequest({title:'Hoàn thiện giao diện',owner:'Nam',due:'2026-11-18T17:00:00+07:00'});return r.confirmer==='Nam'&&!decideManual(r.id,'accept','',1)&&!r.taskId})()"));
+test('FR10s: luồng Nam đề nghị sửa → Lan gửi lại → Nam đồng ý', () => ok("(()=>{const r=sendManualRequest({title:'Hoàn thiện giao diện',owner:'Nam',due:'2026-11-18T17:00:00+07:00'});db.user='Nam';if(!decideManual(r.id,'change','Đề nghị dời sang 20/11/2026.',1)||r.status!=='Cần chỉnh sửa')return false;db.user='Lan';if(!unreadManualCount()||!sendManualRequest({title:r.title,description:r.description,owner:r.owner,due:'2026-11-20T17:00:00+07:00'},r.id,1)||r.status!=='Chờ xác nhận'||r.revision!==2)return false;db.user='Nam';return decideManual(r.id,'accept','',2)&&getTask(r.taskId).due==='2026-11-20T17:00:00+07:00'&&r.history.some(h=>h.reason.includes('20/11'))&&getTask(r.taskId).confirmedBy==='Nam'})()"));
+test('FR10s: tự duyệt và trưởng nhóm tự giao bị chặn', () => ok("(()=>{if(sendManualRequest({title:'Tự giao',owner:'Lan'}))return false;db.user='Nam';const r=sendManualRequest({title:'Việc Nam tạo',owner:'Nam'});return !decideManual(r.id,'accept','',1)&&r.status==='Chờ xác nhận'})()"));
+test('FR10s: bắt buộc tên và người phụ trách, deadline tùy chọn', () => ok("!sendManualRequest({title:'',owner:'Nam'})&&!sendManualRequest({title:'Việc thiếu người'})&&!sendManualRequest({title:'Ngày sai',owner:'Nam',due:'bad'})&&!!sendManualRequest({title:'Chưa có deadline',owner:'Nam',due:null})"));
+test('FR10s: lý do bắt buộc cho đề nghị sửa và từ chối', () => ok("(()=>{const r=sendManualRequest({title:'Kiểm tra',owner:'Nam'});db.user='Nam';return !decideManual(r.id,'change',' ',1)&&!decideManual(r.id,'reject','',1)&&r.status==='Chờ xác nhận'&&db.tasks.length===5})()"));
+test('FR10s: từ chối giữ lý do, không tạo task và báo người tạo', () => ok("(()=>{const r=sendManualRequest({title:'Việc không nhận',owner:'Nam'});db.user='Nam';if(!decideManual(r.id,'reject','Chưa đủ thời gian.',1)||r.status!=='Bị từ chối'||r.taskId)return false;db.user='Lan';return manualNotifications().some(n=>n.kind==='reject')&&r.history.at(-1).reason==='Chưa đủ thời gian.'&&db.tasks.length===5})()"));
+test('FR10s: chỉ người tạo sửa, người ngoài không đọc hay xác nhận', () => ok("(()=>{const r=sendManualRequest({title:'Việc Nam nhận',owner:'Nam'});db.user='Bình';if(getManual(r.id)||manualNotifications().length||decideManual(r.id,'accept','',1))return false;db.user='Nam';return !sendManualRequest({title:'Người khác sửa',owner:'Nam'},r.id,1)})()"));
+test('FR10s: chặn nút đồng ý của phiên bản cũ', () => ok("(()=>{const r=sendManualRequest({title:'Bản đầu',owner:'Nam'});sendManualRequest({title:'Bản thứ hai',owner:'Nam'},r.id,1);db.user='Nam';return !decideManual(r.id,'accept','',1)&&decideManual(r.id,'accept','',2)&&db.tasks.length===6})()"));
+test('FR10s: sửa sau xác nhận giữ bản có hiệu lực đến khi duyệt lại', () => ok("(()=>{const r=sendManualRequest({title:'Bản đã chốt',owner:'Nam',due:'2026-11-18T17:00:00+07:00'});db.user='Nam';decideManual(r.id,'accept','',1);const id=r.taskId;db.user='Lan';sendManualRequest({title:'Bản được sửa',owner:'Nam',due:'2026-11-20T17:00:00+07:00'},r.id,1);if(getTask(id).title!=='Bản đã chốt'||getTask(id).confirmedRevision!==1||r.status!=='Chờ xác nhận')return false;db.user='Nam';return decideManual(r.id,'accept','',2)&&getTask(id).title==='Bản được sửa'&&getTask(id).confirmedRevision===2&&db.tasks.length===6})()"));
+test('FR10s: từ chối bản sửa không xóa công việc đã chốt', () => ok("(()=>{const r=sendManualRequest({title:'Việc hiện hành',owner:'Nam'});db.user='Nam';decideManual(r.id,'accept','',1);db.user='Lan';sendManualRequest({title:'Bản sửa bị từ chối',owner:'Nam'},r.id,1);db.user='Nam';return decideManual(r.id,'reject','Giữ tên ban đầu.',2)&&getTask(r.taskId).title==='Việc hiện hành'&&getTask(r.taskId).confirmationStatus==='Đã xác nhận'})()"));
+test('FR10s: sửa lại cần xác nhận, deadline thay đổi đánh dấu reminder', () => ok("(()=>{const r=sendManualRequest({title:'Kiểm tra',owner:'Nam',due:'2026-11-18T17:00:00+07:00'});db.user='Nam';decideManual(r.id,'accept','',1);db.user='Lan';storeReminder({taskId:r.taskId,recipient:'Nam',at:'2026-11-17T09:00:00+07:00',content:'Nhắc kiểm tra'});const reminder=db.reminders.at(-1);changeReminder(reminder.id,'approve');sendManualRequest({title:r.title,owner:r.owner,due:'2026-11-20T17:00:00+07:00'},r.id,1);if(reminder.review)return false;db.user='Nam';decideManual(r.id,'accept','',2);return reminder.review&&reminder.at==='2026-11-17T09:00:00+07:00'&&db.reminders.length===2})()"));
+test('FR10s: lưu phiên và thông báo đúng tài khoản sau tải lại', () => ok("(()=>{db.user='Nam';const r=sendManualRequest({title:'Kiểm tra API',owner:'Nam'});save();db=JSON.parse(localStorage.getItem(STORAGE));db.user='Lan';return getManual(r.id).creator==='Nam'&&unreadManualCount()===1&&decideManual(r.id,'accept','',1)})()"));
+test('FR10s: không gửi trùng bằng cùng khóa biểu mẫu', () => ok("(()=>{const a={title:'Kiểm tra API',owner:'Nam',submissionKey:'FORM-1'};return !!sendManualRequest(a)&&!sendManualRequest(a)&&db.manualRequests.length===1&&db.notifications.length===1})()"));
+test('FR10s: không xác nhận hai lần cùng yêu cầu', () => ok("(()=>{const r=sendManualRequest({title:'Một việc',owner:'Nam'});db.user='Nam';return decideManual(r.id,'accept','',1)&&!decideManual(r.id,'accept','',1)&&db.tasks.length===6})()"));
+test('FR10s: tạo từ tin nhắn tự gắn nguồn, truy vết đúng nguồn', () => {
+  click('manual-from-message','product|P02'); ok("ui.modal.type==='manual-create'&&ui.modal.extra.values.conv==='product'&&ui.modal.extra.values.sourceMessageId==='P02'");
+  ok("(()=>{const r=sendManualRequest({title:'Từ tin nhắn',owner:'Nam',conv:'product',sourceMessageId:'P02',sourceRevision:0});db.user='Nam';return decideManual(r.id,'accept','',1)&&getTask(r.taskId).evidence[0]==='P02'&&getTask(r.taskId).conv==='product'})()");
+});
+test('FR10s: nguồn sửa/xóa không được xác nhận bằng chứng cũ', () => ok("(()=>{const r=sendManualRequest({title:'Nguồn cần kiểm tra',owner:'Nam',conv:'launch',sourceMessageId:'L01',sourceRevision:0});changeSource('T-001','L01','Nguồn đã sửa');db.user='Nam';return !decideManual(r.id,'accept','',1)&&r.status==='Chờ xác nhận'})()"));
+test('FR10s: nguồn ngoài quyền người nhận bị chặn', () => ok("!sendManualRequest({title:'Không được lộ nguồn',owner:'Nam',conv:'brand',sourceMessageId:'B01'})"));
+test('FR10s: dữ liệu nhập riêng không lưu yêu cầu, thông báo hoặc task', () => {
+  run("db.conversations.push({id:'fr10s-private',title:'Nguồn riêng',topic:'Thử',members:PEOPLE,persist:false,messages:[m('PRIVATE-FR','Lan','VĂN BẢN KHÔNG LƯU')]});const r=sendManualRequest({title:'FR10s KHÔNG LƯU',owner:'Nam',conv:'fr10s-private',sourceMessageId:'PRIVATE-FR',sourceRevision:0});db.user='Nam';decideManual(r.id,'accept','',1);save()");
+  assert.doesNotMatch(saved['chat22-prototype-v3'],/FR10s KHÔNG LƯU|fr10s-private|VĂN BẢN KHÔNG LƯU/);
+});
+test('FR10s: Bình và Mai xác nhận được việc Lan giao', () => ok("['Bình','Mai'].every(owner=>{db.user='Lan';const r=sendManualRequest({title:'Việc của '+owner,owner});db.user=owner;return unreadManualCount()===1&&decideManual(r.id,'accept','',1)&&getTask(r.taskId).owner===owner})"));
+test('FR10s: số đếm, thông báo và bộ lọc tách theo tài khoản', () => {
+  ok("(()=>{const r=sendManualRequest({title:'Tạo cho Nam',owner:'Nam'});db.user='Nam';return manualActions().length===1&&manualOpenCount()===1&&unreadManualCount()===1&&renderConfirmations().includes('Tạo cho Nam')})()");
+  click('manual-read-all'); ok("unreadManualCount()===0&&manualActions().length===1");
+  ok("(()=>{ui.manualFilter='Bị từ chối';return renderConfirmations().includes('Chưa có yêu cầu trong mục này')})()");
+});
+test('FR10s: hai kịch bản demo tạo đúng tài khoản và biểu mẫu', () => {
+  run("startScenario('manual-member',true)");ok("db.user==='Nam'&&ui.modal.type==='manual-create'&&ui.modal.extra.values.title==='Kiểm tra API'");
+  run("startScenario('manual-lead',true)");ok("db.user==='Lan'&&ui.modal.extra.values.owner==='Nam'&&ui.modal.extra.values.title==='Hoàn thiện giao diện'");
+});
+test('FR10s: router xử lý gửi biểu mẫu, lý do và đồng ý đầu cuối', () => {
+  run("db.user='Lan'");
+  const submit=(form)=>listeners.submit[0]({target:form,preventDefault(){},submitter:{}});
+  submit({id:'manual-form',dataset:{id:'',revision:'0',submission:'UI-TEST'},values:{title:'Giao diện từ biểu mẫu',description:'Mô tả',owner:'Nam',due:'2026-11-18T17:00',conv:''}});
+  ok("db.manualRequests.length===1&&ui.page==='confirmations'");
+  click('set-role','Nam');
+  submit({id:'manual-reason-form',dataset:{id:'MR-1',revision:'1',decision:'change'},values:{reason:'Dời sang 20/11'}});
+  ok("db.manualRequests[0].status==='Cần chỉnh sửa'");
+  click('set-role','Lan');
+  submit({id:'manual-form',dataset:{id:'MR-1',revision:'1'},values:{title:'Giao diện từ biểu mẫu',description:'Mô tả',owner:'Nam',due:'2026-11-20T17:00',conv:''}});
+  click('set-role','Nam');
+  listeners.click[0]({target:{closest:()=>({dataset:{act:'manual-accept',id:'MR-1',revision:'2'}})}});
+  ok("db.manualRequests[0].status==='Đã xác nhận'&&db.tasks.find(t=>t.id==='T-MR-1').due==='2026-11-20T10:00:00.000Z'");
+});
+
+test('FR10s: gửi lại thay thế thông báo cũ, còn một yêu cầu mới', () => ok("(()=>{const r=sendManualRequest({title:'Bản đầu',owner:'Nam'});sendManualRequest({title:'Bản mới',owner:'Nam'},r.id,1);db.user='Nam';return unreadManualCount()===1&&manualActions().length===1&&db.notifications.find(n=>n.revision===1).superseded})()"));
+test('FR10s: sau nguồn đổi, có thể gửi lại dù giữ tên và deadline', () => ok("(()=>{const r=sendManualRequest({title:'Theo nguồn',owner:'Nam',conv:'launch',sourceMessageId:'L01',sourceRevision:0});changeSource('T-001','L01','Nguồn chỉnh sửa');if(!sendManualRequest({title:r.title,description:r.description,owner:r.owner,conv:r.conv,sourceMessageId:r.sourceMessageId,sourceRevision:1},r.id,1))return false;db.user='Nam';return decideManual(r.id,'accept','',2)&&getTask(r.taskId).evidence[0]==='L01'})()"));
+test('FR10s: sửa mô tả cũng yêu cầu xác nhận lại', () => ok("(()=>{const r=sendManualRequest({title:'Tên giữ nguyên',description:'Mô tả cũ',owner:'Nam'});db.user='Nam';decideManual(r.id,'accept','',1);db.user='Lan';sendManualRequest({title:r.title,description:'Mô tả mới',owner:r.owner},r.id,1);return r.revision===2&&r.status==='Chờ xác nhận'&&getTask(r.taskId).description==='Mô tả cũ'})()"));
+test('FR10s: từ chối và đề nghị sửa lưu trong lịch sử task khi tạo lại', () => ok("(()=>{const r=sendManualRequest({title:'Giữ lịch sử',owner:'Nam'});db.user='Nam';decideManual(r.id,'reject','Lý do từ chối được giữ',1);db.user='Lan';sendManualRequest({title:r.title,owner:r.owner},r.id,1);db.user='Nam';decideManual(r.id,'accept','',2);return getTask(r.taskId).history.some(h=>h.type==='Bị bác bỏ'&&h.note.includes('Lý do từ chối được giữ'))})()"));
+test('FR10s: task không có nguồn vẫn có bằng chứng và lịch sử rõ ràng', () => ok("(()=>{const r=sendManualRequest({title:'Ngoài hội thoại',owner:'Nam'});db.user='Nam';decideManual(r.id,'accept','',1);ui.detailTab='evidence';const s=detailContent(getTask(r.taskId));return s.includes('Người dùng tạo thủ công')&&s.includes('không có tin nhắn nguồn')&&s.includes('Lịch sử xác nhận')})()"));
+test('FR10s: sửa dùng nguồn nhập riêng không ghi đè bản mẫu đã lưu', () => {
+  run("(()=>{const r=sendManualRequest({title:'BẢN CÔNG KHAI MẪU',owner:'Nam'});db.user='Nam';decideManual(r.id,'accept','',1);db.user='Lan';db.conversations.push({id:'edit-private',title:'Nguồn riêng',topic:'Thử',members:PEOPLE,persist:false,messages:[m('EP-1','Lan','Nguồn riêng')]});sendManualRequest({title:'BẢN SỬA KHÔNG LƯU',owner:'Nam',conv:'edit-private',sourceMessageId:'EP-1',sourceRevision:0},r.id,1);save()})()");
+  assert.match(saved['chat22-prototype-v3'],/BẢN CÔNG KHAI MẪU/);
+  assert.doesNotMatch(saved['chat22-prototype-v3'],/BẢN SỬA KHÔNG LƯU|edit-private/);
+});
+test('FR10s: ghi chú bật tắt theo cơ chế cũ', () => ok("(()=>{if(!noteMark('FR10s').includes('10s'))return false;ui.note='FR10s';renderNote();if(!document.getElementById('note').innerHTML.includes('Không tự duyệt'))return false;db.notes=false;renderNote();return noteMark('FR10s')===''&&document.getElementById('note').hidden})()"));
+test('FR10s: reset kịch bản thủ công không làm mất dữ liệu AI', () => ok("(()=>{db.user='Nam';const r=sendManualRequest({title:'Kiểm tra API',owner:'Nam',scenario:'manual-member'});db.user='Lan';decideManual(r.id,'accept','',1);const tasks=db.tasks.filter(t=>!t.manualRequestId).length,proposals=db.proposals.length;startManualScenario('manual-member',true);return db.tasks.filter(t=>!t.manualRequestId).length===tasks&&db.proposals.length===proposals&&!db.manualRequests.some(r=>r.scenario==='manual-member')})()"));
+
+test('FR10s: đổi hội thoại vẫn truy đúng nguồn cũ và mới theo mốc', () => ok("(()=>{const r=sendManualRequest({title:'Đổi nguồn',owner:'Nam',conv:'launch',sourceMessageId:'L01',sourceRevision:0});db.user='Nam';decideManual(r.id,'accept','',1);db.user='Lan';sendManualRequest({title:r.title,owner:'Nam',conv:'product',sourceMessageId:'P02',sourceRevision:0},r.id,1);db.user='Nam';decideManual(r.id,'accept','',2);const t=getTask(r.taskId);return t.history.some(h=>historySourceLinks(h,t).includes('launch|L01'))&&t.history.some(h=>historySourceLinks(h,t).includes('product|P02'))})()"));
+test('FR10s: người mới nhận việc không thấy nội dung lịch sử ngoài quyền', () => ok("(()=>{const r=sendManualRequest({title:'BẢN NỘI BỘ CŨ',description:'MÔ TẢ NỘI BỘ CŨ',owner:'Mai',conv:'brand',sourceMessageId:'B01',sourceRevision:0});db.user='Mai';decideManual(r.id,'accept','',1);db.user='Lan';sendManualRequest({title:'Bản chia sẻ cho Nam',description:'Mô tả công khai nhóm',owner:'Nam',conv:'launch',sourceMessageId:'L01',sourceRevision:0},r.id,1);db.user='Nam';if(!decideManual(r.id,'accept','',2))return false;const manual=manualDialog('manual-detail',r.id);ui.detailTab='history';const history=detailContent(getTask(r.taskId));return !manual.includes('BẢN NỘI BỘ CŨ')&&!manual.includes('MÔ TẢ NỘI BỘ CŨ')&&!history.includes('brand|B01')&&history.includes('launch|L01')})()"));
 
 const failed = results.filter(r=>!r.passed);
 console.log(JSON.stringify({total:results.length,passed:results.length-failed.length,failed,verification:'Logic + HTML render trong DOM giả lập; chưa xác minh giao diện trên trình duyệt.'},null,2));

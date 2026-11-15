@@ -18,7 +18,8 @@ trưởng nhóm và thành viên là 2 vai trò phân quyền.
 | US07 | Trưởng nhóm, Thành viên | Nhận biết thay đổi người phụ trách, thời hạn hoặc hoàn thành | Nắm đúng tình trạng hiện tại |
 | US08 | Trưởng nhóm, Thành viên | Xem lịch sử và tin nhắn nguồn của công việc | Kiểm chứng các quyết định |
 | US09 | Trưởng nhóm, Thành viên | Xem trước và phê duyệt nhắc việc | Kiểm soát việc tạo nhắc |
-| US10 | Trưởng nhóm, Thành viên | Chỉ truy cập dữ liệu được phép | Bảo vệ thông tin của nhóm |
+| US10 | Trưởng nhóm, Thành viên | Chỉ truy cập dữ liệu được phép | Bảo vệ thông tin của nhóm|
+|US10s | Trưởng nhóm, Thành viên | Trưởng nhóm và thành viên muốn tự thêm công việc khi AI bỏ sót hoặc phát sinh ngoài hội thoại, gửi người liên quan xác nhận để thống nhất trách nhiệm. | tự động thêm không cần trao đổi qua tin nhắn| 
 
 **User stories nâng cao — đề xuất chọn sau MVP:**
 
@@ -49,6 +50,7 @@ Thứ tự thực hiện us để tạo lát cắt :
 | FR08 | Lịch sử và truy vết | Lưu lịch sử thay đổi; liên kết công việc, cập nhật, tóm tắt và cảnh báo về đúng nguồn bằng chứng. |
 | FR09 | Nhắc việc có phê duyệt | Cho phép xem trước, duyệt và hủy nhắc việc; không tạo nhắc việc hoặc lịch khi chưa được duyệt. |
 | FR10 | Đánh giá chất lượng AI | Tính Precision, Recall, F1; đo độ đúng nguồn, khả năng theo dõi trạng thái và độ trễ. |
+| FR10s | Thêm công việc thủ công | Cho phép tự tạo công việc; thành viên tạo thì trưởng nhóm duyệt, trưởng nhóm giao thì thành viên được giao xác nhận trước khi công việc có hiệu lực. |
 
 **Chức năng nâng cao:**
 
@@ -87,6 +89,7 @@ Thứ tự thực hiện us để tạo lát cắt :
 | BR12 | Nhập hoặc xử lý lại cùng tin nhắn không được tạo trùng công việc hay nhắc việc. |
 | BR13 | Duyệt công việc không đồng nghĩa duyệt nhắc việc; thay đổi nội dung, người nhận hoặc thời điểm nhắc phải được duyệt lại. |
 | BR14 | Khi nguồn bị sửa, xóa hoặc xuất hiện thông tin mâu thuẫn, đưa kết quả liên quan vào trạng thái cần rà soát. |
+| BR15 | Công việc phát sinh từ nhóm chat ngoài hệ thống được người dùng nhập thủ công; thành viên tạo thì trưởng nhóm duyệt, trưởng nhóm giao thì thành viên được giao xác nhận trước khi công việc có hiệu lực. |
 
 ### 5. Data Requirements (xác định dữ lieu đầu vào)
 
