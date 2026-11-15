@@ -1,42 +1,37 @@
-### 1. project overview: (giới thiệu dự án)
-	- Xây dựng một hệ thống AI hỗ trợ quản lý công việc phát sinh trong hội thoại nhóm. 
-	-AI tự động phát hiện công việc, người phụ trách, thời hạn và trạng thái; đồng thời cập nhật thay đổi dựa trên các 	tin nhắn mới.
+CommitChat AI — Product Brief (CHAT-22)
+Cập nhật: 15/11/2026. Tài liệu yêu cầu sản phẩm; hiện trạng triển khai xem review.
 
-### 2. problem statement: (xác định vấn đề thực tế và hậu quả)
-	-các nhóm chat công ty, trường học,... thường có rất nhiều việc được giao qua nhóm chat chung. không phải lúc nào 	người dung cũng trực nhóm chat từ đó khi tin nhắn tang lên thì thông tin công việc bàn giao, deadline,.. sẽ bị trôi.
-	-hậu quả : trễ deadline quên việc, hậu quả ảnh hưởng đến việc làm có thể không hoàn thành công việc được giao. nhiều 	lần gây hậu quả cực kỳ xấu.
+## 1. giới thiệu dự án
+-Xây dựng một hệ thống AI hỗ trợ quản lý công việc phát sinh trong hội thoại nhóm.
 
-### 3. target users: (ai gặp vấn đề?, ai dùng sản phẩm?)
-	người gặp vấn đề:
-	-trưởng nhóm, cần quản lý công việc nhiều theo dõi tiến độ dự án nên có rất nhiều tin tức trong nhóm chat cần phảm 	theo dõi.
-	-nhân viên cần biết công việc nào cần bàn giao cho mình tránh bỏ sót
-	người dùng sản phẩm:
-	-những người làm việc và học tập dùng nhóm chat để phổ biến và triển khai công việc
+-CommitChat AI giúp nhóm/phòng ban trong doanh nghiệp vừa và nhỏ chuyển công việc và cam kết trong chat thành danh sách có người phụ trách, thời hạn, trạng thái và bằng chứng nguồn.
 
-### 4. Proposed Solution : (giải pháp)
-	-Ai đọc hội thoại được cấp quyền --> phát hiện và tập hợp công việc thành danh sách có cấu trúc.
-	-Hệ thống nhận ra các thay đổi, cập nhật phù hợp và lưu bằng chứng nguồn.
-	-Những trường hợp mơ hồ cần được user xác nhận trước khi cập nhật chính thức.
+## 2. problem statement: (xác định vấn đề thực tế và hậu quả)
+Nhân viên thường giao việc, nhận việc, hỏi tiến độ và sửa deadline ngay trong hội thoại.
+Task tracker thường cần cập nhật thủ công; thông tin mới có thể nằm ở thread khác hoặc nhóm chat khác.
+Một câu ngắn như “ok để mình làm” thiếu ý nghĩa nếu tách khỏi tin nhắn trước đó.
+Lời đề xuất và quyết định đã được chấp thuận dễ bị nhầm lẫn.
+Doanh nghiệp quan tâm đến quyền riêng tư, quyền truy cập và bằng chứng truy vết khi dùng AI.
+-hậu quả : trễ deadline quên việc, hậu quả ảnh hưởng đến việc làm có thể không hoàn thành công việc được giao. nhiều lần gây hậu quả cực kỳ xấu.
 
-### 5. key objactives : (mục tiêu sản phẩm)
-	-tự động hóa việc ghi nhận các task
-	-theo dỗi thay đổi
-	-GIẢM bỏ sót công việc và giúp người dung kiểm tra lại các quyết định
+## 3. target users: (ai gặp vấn đề?, ai dùng sản phẩm?)
+người gặp vấn đề: nhóm trướng và thành viện trong nhóm
 
-### 6. project scope: (giới hạn phạm vi của sản phẩm)
-	-xử lý tin nhắn văn bản ( có thể nâng cấp xử lý hình hhh và âm  thanh)
-	-phát hiện task --> trích xuất người phụ trách/deadline
-	-phân luồng hội thoại, theo dõi trạng thái và trích dẫn tin nhắn nguồn
+nhóm nhỏ 3–10 người, giao tiếp chủ yếu bằng tiếng Việt, dùng TaskMind Web Chat. Không định vị là đối thủ thay thế toàn diện của Jira/Teams/Slack trong 5 tuần
 
-### 7. success criteria ( tiêu chí để thành công) --> phần này cần đặt giới hạn do nhóm thống nhất cần off để t hống nhất
-	- nhận diện chính xác tt nhất bao nhiêu %
-	- phát hiện thay đổi deadline, người phụ trách bao nhiêu %
-	- mỗi task và thay đổi quan trọng có thể truy về tin nhắn nguồn
-	- người dung kiểm tra và sửa kết quả của ai
+## 4. Proposed Solution : (giải pháp)
+-tạo ra ứng dụng AI giúp hỗ trích xuất tin nhắn, tách luồng hội thoại, lọc task có cấu trúc, kiểm tra bằng chứng và yêu cầu phê duyệt, xử lý thông tin.
 
-### 8. risks & constraints ( rủi ro và giới hạn)
-	- AI có thể hiểu sai tiếng lóng, câu nói mơ hồ, các cuộc hội thoại đan xen hoặc quyết định bị phủ định.
-	- các rủi ro về quyền truy cập và bảo mật tin nhắn công ty.
-	
-	
-	
+## 5. key objactives : (mục tiêu sản phẩm)
+-tự động hóa việc ghi nhận các task -theo dỗi thay đổi -GIẢM bỏ sót công việc và giúp người dùng kiểm tra lại các quyết định
+
+## 6. project scope: (giới hạn phạm vi của sản phẩm)
+-xử lý tin nhắn văn bản ( có thể nâng cấp xử lý hình hhh và âm thanh) -phát hiện task --> trích xuất người phụ trách/deadline -phân luồng hội thoại, theo dõi trạng thái và trích dẫn tin nhắn nguồn -nhắc nhở có phê duyệt, hủy và chống gửi trùng.
+
+## 7. success criteria ( tiêu chí để thành công)
+nhận diện chính xác tt nhất bao nhiêu 80%
+phát hiện thay đổi deadline, người phụ trách bao nhiêu 70%
+mỗi task và thay đổi quan trọng có thể truy về tin nhắn nguồn có
+người dung kiểm tra và sửa kết quả của AI
+## 8. Rủi ro chính
+AI hiểu sai hội thoại đan xen hoặc deadline tương đối; nguồn sửa/xóa; xử lý trùng; dữ liệu vượt quyền; hiểu nhầm giao diện mẫu hoặc eval offline là sản phẩm đã hoàn thành. Cần nghiệm thu theo PRD, UI flow và review kỹ thuật.
