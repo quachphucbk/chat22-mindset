@@ -1,4 +1,6 @@
-# Prototype CHAT-22
+# Prototype CommitChat AI — CHAT-22
+
+> Cập nhật kiểm tra: 15/11/2026. Đặc tả: [PRD](../prd.md), [UI flow](<../Wireframe-UI Flow.md>). Đối chiếu khung backend/frontend thật: [review commitchat-ai](../review-commitchat-ai.md).
 
 Mở **`index.html`** bằng Chrome, Edge hoặc Firefox. File tự chứa toàn bộ HTML, CSS, JavaScript và dữ liệu minh họa; không cần cài đặt, API key, backend hoặc kết nối mạng.
 
@@ -30,14 +32,20 @@ Có 10 kịch bản theo yêu cầu và 2 kịch bản bổ sung về đổi ng�
 
 ## Kiểm tra
 
-Nếu máy có Node.js:
+Từ root `chat22-mindset`, nếu máy có Node.js:
 
 ```sh
-node prototype.test.mjs
+node prototype/prototype.test.mjs
 ```
 
-Kết quả khi bàn giao: **48/48 kiểm tra logic và render HTML trong DOM giả lập đã qua**, bao gồm các kịch bản bắt buộc, nhập dữ liệu, phân quyền giao diện, chống trùng, lịch sử, nhắc việc, nguồn sửa/xóa và lưu phiên.
+Kết quả chạy lại ngày 15/11/2026: **48/48 kiểm tra logic và render HTML trong DOM giả lập đã qua**, bao gồm các kịch bản bắt buộc, nhập dữ liệu, phân quyền giao diện, chống trùng, lịch sử, nhắc việc, nguồn sửa/xóa và lưu phiên.
 
-**Giới hạn kiểm chứng:** chưa kiểm tra giao diện trực quan và thao tác trên trình duyệt thật. Công cụ điều khiển trình duyệt dừng vì không xác định được URL hiện tại trên Windows. Bộ kiểm tra tự động không thay thế kiểm tra bố cục, focus bàn phím, upload/download và responsive trong trình duyệt.
+**Giới hạn kiểm chứng:** chưa kiểm tra giao diện trực quan và thao tác trên trình duyệt thật. Bộ kiểm tra tự động không thay thế kiểm tra bố cục, focus bàn phím, upload/download và responsive trong trình duyệt.
 
-PRD và các tài liệu có sẵn được giữ nguyên; không có thao tác commit hoặc push.
+## Quan hệ với commitchat-ai
+
+Prototype là tài liệu tương tác về hành vi mục tiêu; không phải frontend đã nối backend của commitchat-ai. Bản Next.js hiện có login/chat/tasks nhưng còn dùng placeholder. Không suy ra từ demo rằng đã có auth, ACL repository, task lưu DB, agent trích xuất thật hoặc scheduler gửi nhắc.
+
+Chính sách demo: Lan duyệt tạo/cập nhật task và nhắc việc; Nam xem theo quyền, phản hồi và gửi đề nghị để Lan duyệt. Đây là chính sách MVP đề xuất trong PRD. Confidence cao không bỏ qua bước duyệt.
+
+Đợt review này cập nhật các tài liệu Markdown và chạy lại bộ kiểm tra hiện có; mã HTML và test prototype được giữ nguyên. Chưa kiểm tra trực quan trên trình duyệt thật.

@@ -1,7 +1,15 @@
-### 1. Produtuct Overview (mô tả sản phẩm và mục tiêu)
+# CommitChat AI — Product Requirements Document (CHAT-22)
 
-	- sản phẩm Ai quản lý công nghiệp và cam kết thoại
-	- lĩnh vực tin nhắn  và doanh nghiệp
+> Phiên bản đối chiếu: 1.1 — 15/11/2026. Đây là yêu cầu mục tiêu, chưa phải danh sách chức năng đã hoàn thành.
+> Nguồn tham chiếu: docs sản phẩm/kiến trúc P-139 và code local commitchat-ai. [Review triển khai](review-commitchat-ai.md) ghi bằng chứng và kết quả kiểm tra.
+
+## 1. Tổng quan sản phẩm
+
+CommitChat AI là ứng dụng web hỗ trợ nhóm doanh nghiệp phát hiện và quản lý công việc, cam kết từ hội thoại. Sản phẩm phải xác định task, người phụ trách, deadline và trạng thái; theo dõi thay đổi quyết định và truy vết đúng nguồn.
+
+**Hiện trạng:** commitchat-ai có khung FastAPI/LangGraph, schema domain và giao diện Next.js nhưng chưa có pipeline CHAT-22 đầu cuối. Prototype trong repo này mô phỏng hành vi bằng luật cố định. Backend 55/55 test pass không chứng minh đáp ứng các FR bên dưới.
+
+**Quy tắc đối chiếu:** docs mô tả mục tiêu; code xác định hiện trạng. Không nhập nguyên trạng những tuyên bố “đã có” từ README/PROJECT_CONTEXT P-139 khi code chưa thực hiện.
 
 ### 2. User Stories (mô tả nhu cầu của từng người dùng)
 
@@ -88,7 +96,7 @@ Thứ tự thực hiện us để tạo lát cắt :
 | BR13 | Duyệt công việc không đồng nghĩa duyệt nhắc việc; thay đổi nội dung, người nhận hoặc thời điểm nhắc phải được duyệt lại. |
 | BR14 | Khi nguồn bị sửa, xóa hoặc xuất hiện thông tin mâu thuẫn, đưa kết quả liên quan vào trạng thái cần rà soát. |
 
-### 5. Data Requirements (xác định dữ lieu đầu vào)
+## 5. Data Requirements — Yêu cầu dữ liệu
 
 ### 5.1. Mục tiêu
 
@@ -238,7 +246,7 @@ Nhóm cần xây dựng hoặc lựa chọn tập đánh giá có nhãn chuẩn 
 - **Quản lý nhóm:** Quản lý công việc và phê duyệt hành động trong phạm vi được cấp quyền.
 - **Thành viên:** Xem và thao tác với công việc, hội thoại được cấp quyền; xác nhận hoặc đề xuất chỉnh sửa theo quyền được giao.
 
-Phạm vi quyền cụ thể phải thống nhất với Business Rules.
+Chính sách quyền MVP đề xuất được cụ thể hóa tại mục 8.5 và áp dụng nhất quán với BR08, BR13. Đây là yêu cầu cần triển khai backend; prototype chỉ mô phỏng.
 
 ### 6.2. Reliability – Độ tin cậy
 
@@ -259,7 +267,7 @@ Phạm vi quyền cụ thể phải thống nhất với Business Rules.
 - **NFR-16:** Hạn chế xử lý trùng lặp gây tạo task hoặc cập nhật giống nhau cho cùng sự kiện.
 - **NFR-17:** Khi AI xử lý chậm hoặc thất bại, hệ thống phải thông báo trạng thái phù hợp và bảo toàn dữ liệu.
 
-Đề bài không quy định thời gian phản hồi tối đa. Nhóm cần xác định ngưỡng hiệu năng dựa trên môi trường triển khai và kết quả thử nghiệm.
+Mục tiêu đề xuất kế thừa P-139: p90 từ ingest đến nhận đề xuất < 5 giây, không tính thời gian người dùng duyệt. Đo thời gian duyệt riêng. Mục tiêu này chưa được benchmark và không phải ngưỡng bắt buộc của đề bài.
 
 ### 6.4. Usability – Khả năng sử dụng
 
@@ -442,7 +450,13 @@ Việc nghiệm thu dựa trên:
 6. Tính Precision, Recall, F1 và các chỉ số bổ sung.
 7. Ghi nhận và phân tích trường hợp AI xử lý sai.
 
-**Lưu ý:** Đề bài không quy định ngưỡng Precision/Recall/F1 cụ thể. Nhóm phải thống nhất mục tiêu đánh giá dựa trên dữ liệu thực nghiệm.
+**Mục tiêu đề xuất:** task extraction F1 ≥ 0,80, 100% task/revision đã xác nhận có nguồn hợp lệ và không có truy xuất vượt quyền trong các ca ACL. Đây là mục tiêu tham chiếu P-139, chưa phải kết quả đạt được hoặc ngưỡng bắt buộc của đề bài.
+
+**Cách chấm:** ghép dự đoán với nhãn chuẩn một-một trong từng hội thoại theo task/action đã gắn nhãn; dự đoán trùng tính FP, task bị bỏ sót tính FN. Báo cáo rõ tiêu chí khớp title/action, đánh giá riêng assignee, deadline chuẩn hóa múi giờ, evidence ID và trạng thái cuối chuỗi. Precision = TP/(TP+FP), Recall = TP/(TP+FN), F1 = 2PR/(P+R); mẫu số bằng 0 ghi rõ quy ước (0 cho các tỷ lệ này). Không dùng một LLM judge chung hoặc pass rate template thay cho scorer task.
+
+Dataset phải có ID tin, timestamp/múi giờ, quyền truy cập và nhãn trạng thái theo thời gian; thêm no_task, câu mơ hồ, cập nhật bị phủ định, nguồn sửa/xóa và hội thoại đan xen. Ưu tiên ít nhất 45 ca kiểm thử theo hướng dẫn template, tách dev/test theo hội thoại để tránh rò rỉ. Đây là kế hoạch dữ liệu, chưa phải số lượng đã có.
+
+**Hiện trạng eval:** runner mặc định chấm 10 case generic trong `golden_sample.jsonl`. File `golden_chat_task_vi.jsonl` có 5 ca theo schema khác và chưa có adapter/scorer tương ứng. Report offline template không phải kết quả P/R/F1 của CHAT-22.
 
 ### 7.5. Điều kiện nghiệm thu tổng thể
 
@@ -541,16 +555,20 @@ Chỉ tạo hoặc kích hoạt reminder sau khi có phê duyệt hợp lệ.
 
 Đánh giá trên dữ liệu có nhãn và báo cáo Precision, Recall, F1.
 
-### 8.5. Những quyết định cần nhóm thống nhất
+### 8.5. Chính sách MVP đề xuất sau đối chiếu P-139
 
-- Ứng dụng có hệ thống chat riêng hay tiếp nhận hội thoại từ nguồn khác.
-- Cơ chế lấy và đồng bộ tin nhắn mới.
-- Định dạng dữ liệu hỗ trợ trong MVP.
-- Quyền xác nhận, chỉnh sửa task và phê duyệt reminder.
-- Quy tắc cập nhật trạng thái khi bằng chứng rõ ràng.
-- Quy trình xử lý các quyết định mâu thuẫn.
-- Bộ dữ liệu đánh giá và các ngưỡng chất lượng.
-- Cách đo độ trễ và các giới hạn triển khai.
+Các lựa chọn sau làm cơ sở triển khai nhất quán giữa tài liệu và prototype; chưa phải xác nhận nhóm đã phê duyệt hoặc code đã đáp ứng.
+
+- **Đầu vào:** văn bản/JSON qua web trong workspace được cấp quyền; chưa bắt buộc connector Slack/Teams/Zalo, hình ảnh hay âm thanh.
+- **Vai trò:** Manager xem và duyệt trong nhóm được cấp quyền; Member xem task của mình và hội thoại được cấp quyền, phản hồi/làm rõ/đề nghị sửa để Manager duyệt. Admin quản trị workspace theo hướng P-139, màn hình riêng sau lát cắt đầu.
+- **Phê duyệt:** mọi đề xuất AI tạo/cập nhật task cần người có quyền duyệt. P-139 cho phép auto-save khi confidence cao; tài liệu này chọn chính sách chặt hơn theo BR08 và prototype. Ngưỡng confidence < 0,7 hoặc thiếu trường quan trọng dùng để yêu cầu làm rõ, không tự cho phép ghi DB ở nhánh còn lại.
+- **Thời gian:** lưu timestamp có timezone, hiển thị `Asia/Ho_Chi_Minh`; diễn giải “mai/thứ Sáu” theo thời điểm tin nhắn. Deadline có thể chưa xác định; không tự chọn hạn. Trường hợp task không cần hạn phải được người duyệt xác nhận rõ.
+- **Cập nhật:** giữ trạng thái cũ cho đến khi duyệt; kiểm tra version để chặn duyệt đề xuất lỗi thời, lưu trước/sau và evidence. Không đủ căn cứ hoặc mâu thuẫn thì cần rà soát.
+- **Nhắc việc:** chỉ nhắc trong app ở MVP; duyệt riêng theo BR13, thay đổi deadline/nguồn phải rà soát; chưa gửi email hay tạo lịch ngoài.
+- **Lưu trữ:** PostgreSQL làm nguồn dữ liệu task/revision/evidence. Neo4j dependency graph và benchmark phân luồng nâng cao để sau MVP, dù Compose đã khai báo Neo4j. Redis được dùng khi hiện thực queue; khai báo service chưa chứng minh có tích hợp.
+- **Evidence:** `evidence_message_id` trong schema P-139 là nguồn chính; `source_message_ids` ở mô hình logic có thể lưu thêm ngữ cảnh. Backend phải kiểm tra nguồn tồn tại, đúng workspace/channel/quyền; có chuỗi ID không đủ để coi là grounded.
+
+Các thay đổi chính sách quyền, auto-save, kênh gửi nhắc hoặc scope phải cập nhật đồng thời PRD, brief, UI flow và tiêu chí nghiệm thu.
 
 ### 8.6. Phạm vi bàn giao MVP
 
@@ -577,3 +595,36 @@ MVP được xem là hoàn thành khi:
 - Ứng dụng web được triển khai và có thể trình diễn.
 
 **Kết quả cuối cùng:** CHAT-22 phải chứng minh được khả năng chuyển thông tin công việc từ hội thoại thành dữ liệu có cấu trúc, cập nhật đúng theo thời gian, kiểm chứng được nguồn và không thực hiện hành động ngoài quyền hoặc chưa được phê duyệt.
+
+
+## 9. Contract triển khai và hiện trạng
+
+### 9.1. API hiện có và API mục tiêu
+
+Backend hiện đăng ký `GET /health`, `POST /api/v1/chat`, `POST /api/v1/chat/resume` và `GET /api/v1/status`. Session HITL của chat agent mẫu chưa phải proposal/task ID của CHAT-22.
+
+API mục tiêu tham chiếu P-139 (chưa triển khai):
+
+| Thao tác | Endpoint mục tiêu |
+|---|---|
+| Xác thực | `POST /api/v1/auth/login` |
+| Ingest hội thoại | `POST /api/v1/workspaces/{id}/messages` |
+| Inbox | `GET /api/v1/workspaces/{id}/tasks` |
+| Confirm/Edit/Reject | `POST /api/v1/tasks/{id}/confirm` với quyết định và dữ liệu sửa |
+| Hoàn thành / đề nghị cập nhật | `POST /api/v1/tasks/{id}/complete`, `POST /api/v1/tasks/{id}/update` |
+| Lịch sử | `GET /api/v1/tasks/{id}/revisions` |
+| Chỉ số domain | `GET /api/v1/workspaces/{id}/metrics` |
+
+Chi tiết schema proposal, phê duyệt reminder và mã lỗi cần chốt trong OpenAPI khi triển khai. Không kết nối UI vào endpoint chưa tồn tại. Người dùng nhập `workspace_id/user_id` không thay thế danh tính đã xác thực; backend đối chiếu membership cho cả đọc, ghi và resume.
+
+### 9.2. Tách trạng thái
+
+- `approval_status`: đề xuất/chờ làm rõ/chờ duyệt/đã duyệt/bị bác bỏ; không trộn với tiến độ task.
+- `task_status`: pending/in_progress/completed/cancelled. `to_confirm` là nhãn inbox cho đề xuất; `overdue` là thuộc tính tính từ hạn và trạng thái, không thay thế trạng thái nghiệp vụ.
+- `reminder_status`: nháp/chờ duyệt/đã duyệt/đã gửi/đã hủy/cần rà soát; worker chỉ gửi bản đã duyệt còn hiệu lực.
+
+Schema hiện tại vẫn có `to_confirm/overdue` trong `TaskStatus`; việc tách ở đây là yêu cầu cần đồng bộ code sau review.
+
+### 9.3. Khoảng cách và thứ tự triển khai
+
+Xem [review commitchat-ai](review-commitchat-ai.md) cho bằng chứng từng phát hiện, lỗi scheduler, eval và frontend lint. Thứ tự: auth/ACL + repository → ingest/extract/HITL/inbox → tách luồng cơ bản → revision/update → reminder → scorer và bằng chứng triển khai. Lát cắt đầu phải chạy qua API/UI/DB thật trước khi mở rộng dependency graph.
