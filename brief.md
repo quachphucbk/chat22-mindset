@@ -1,96 +1,37 @@
-# CHAT-22 | TASKMIND
-## AI quản lý công việc và cam kết từ hội thoại
+CommitChat AI — Product Brief (CHAT-22)
+Cập nhật: 15/11/2026. Tài liệu yêu cầu sản phẩm; hiện trạng triển khai xem review.
 
----
+## 1. giới thiệu dự án
+-Xây dựng một hệ thống AI hỗ trợ quản lý công việc phát sinh trong hội thoại nhóm.
 
-## Bài toán
+-CommitChat AI giúp nhóm/phòng ban trong doanh nghiệp vừa và nhỏ chuyển công việc và cam kết trong chat thành danh sách có người phụ trách, thời hạn, trạng thái và bằng chứng nguồn.
 
-Trong chat doanh nghiệp, nhiều công việc được giao bằng ngôn ngữ tự nhiên như *"Mai gửi proposal nhé"* hoặc *"Phần này chờ Lan duyệt rồi Nam làm tiếp"*. Các cam kết này dễ bị trôi vì:
-- Nhiều chủ đề đan xen trong cùng một cuộc hội thoại.
-- Tiếng lóng, viết tắt, ngôn ngữ không chính thức.
-- Quyết định ở tin nhắn sau có thể thay đổi hoặc phủ định tin nhắn trước.
+## 2. problem statement: (xác định vấn đề thực tế và hậu quả)
+Nhân viên thường giao việc, nhận việc, hỏi tiến độ và sửa deadline ngay trong hội thoại.
+Task tracker thường cần cập nhật thủ công; thông tin mới có thể nằm ở thread khác hoặc nhóm chat khác.
+Một câu ngắn như “ok để mình làm” thiếu ý nghĩa nếu tách khỏi tin nhắn trước đó.
+Lời đề xuất và quyết định đã được chấp thuận dễ bị nhầm lẫn.
+Doanh nghiệp quan tâm đến quyền riêng tư, quyền truy cập và bằng chứng truy vết khi dùng AI.
+-hậu quả : trễ deadline quên việc, hậu quả ảnh hưởng đến việc làm có thể không hoàn thành công việc được giao. nhiều lần gây hậu quả cực kỳ xấu.
 
-## Vấn đề cốt lõi
+## 3. target users: (ai gặp vấn đề?, ai dùng sản phẩm?)
+người gặp vấn đề: nhóm trướng và thành viện trong nhóm
 
-Làm thế nào để AI:
-1. Tự phát hiện **task / ngườii phụ trách / deadline / trạng thái** từ chat.
-2. Nhận ra **task đã hoàn thành, đổi hạn, đổi ngườii** khi có tin nhắn mới.
-3. **Tách luồng hội thoại đan xen** để không gán nhầm ngữ cảnh.
-4. **Kết hợp suy luận ngữ cảnh với kiểm chứng bằng chứng** ngay trong chat.
+nhóm nhỏ 3–10 người, giao tiếp chủ yếu bằng tiếng Việt, dùng TaskMind Web Chat. Không định vị là đối thủ thay thế toàn diện của Jira/Teams/Slack trong 5 tuần
 
-## Giải pháp
+## 4. Proposed Solution : (giải pháp)
+-tạo ra ứng dụng AI giúp hỗ trích xuất tin nhắn, tách luồng hội thoại, lọc task có cấu trúc, kiểm tra bằng chứng và yêu cầu phê duyệt, xử lý thông tin.
 
-**TaskMind** — AI agent nhúng vào chat doanh nghiệp, tự động:
-- Trích xuất cam kết công việc từ hội thoại.
-- Yêu cầu xác nhận khi thông tin chưa rõ.
-- Theo dõi thay đổi trạng thái theo thờii gian.
-- Liên kết mọi task về đúng tin nhắn nguồn.
+## 5. key objactives : (mục tiêu sản phẩm)
+-tự động hóa việc ghi nhận các task -theo dỗi thay đổi -GIẢM bỏ sót công việc và giúp người dùng kiểm tra lại các quyết định
 
-## Target User
+## 6. project scope: (giới hạn phạm vi của sản phẩm)
+-xử lý tin nhắn văn bản ( có thể nâng cấp xử lý hình hhh và âm thanh) -phát hiện task --> trích xuất người phụ trách/deadline -phân luồng hội thoại, theo dõi trạng thái và trích dẫn tin nhắn nguồn -nhắc nhở có phê duyệt, hủy và chống gửi trùng.
 
-| Vai trò | Nhu cầu chính |
-|---|---|
-| Team Lead / PM | Theo dõi cam kết, đảm bảo không trôi việc |
-| Thành viên nhóm | Nhận task rõ ràng, cập nhật tiến độ |
-| Admin / Compliance | Kiểm soát quyền truy cập, audit log |
-
-## Ràng buộc
-
-- Không biến mọi câu nói thành task.
-- Chưa rõ → yêu cầu xác nhận.
-- Mọi cập nhật cần có message làm bằng chứng.
-- Không tự tạo reminder/lịch khi chưa được duyệt.
-- ACL tại tầng truy xuất.
-- Mọi cam kết/cảnh báo phải liên kết ngược đúng tin nhắn nguồn.
-
-## Tech Stack
-
-| Lớp | Công nghệ |
-|---|---|
-| AI Agent | LangGraph + LangChain |
-| LLM Structured Output | OpenAI GPT-4o-mini / Pydantic |
-| Backend | FastAPI + Python 3.11 |
-| Database | PostgreSQL |
-| Cache / Queue | Redis + APScheduler |
-| Optional Graph | Neo4j (nếu còn thờii gian) |
-| Frontend | React + TypeScript |
-| Observability | Langfuse |
-| DevOps | Docker + GitHub Actions |
-
-## Dữ liệu tham khảo
-
-| Dataset | Mục đích | Cách lấy |
-|---|---|---|
-| SAMSum / DialogSum | Học pattern trích xuất từ hội thoại | `datasets.load_dataset()` |
-| Ubuntu Chat Disentanglement | Benchmark tách luồng | HuggingFace / GitHub |
-| MultiWOZ | Dialog state tracking | `datasets.load_dataset()` |
-| ViHSD | Guardrail toxic tiếng Việt | GitHub VietAI |
-| Chat Việt tự thu | Golden dataset chính | Team thu thập + anonymize |
-
-## Success Metrics
-
-| Metric | Mục tiêu |
-|---|---|
-| Task detection F1 | ≥ 0.80 |
-| Slot filling accuracy (assignee + deadline) | ≥ 0.75 |
-| State transition accuracy | ≥ 0.85 |
-| Thread disentanglement score | ≥ 0.70 |
-| HITL acceptance rate | ≥ 0.80 |
-| P95 latency | < 5s |
-
-## Scope 5 tuần
-
-**Cơ bản (bắt buộc):**
-- Extract task/assignee/deadline.
-- HITL Confirm/Edit/Reject.
-- Task inbox.
-- Detect update/completion.
-- Evidence linking.
-- Precision/Recall/F1.
-- ≥2 vai trò phân quyền + ACL.
-
-**Nâng cao (chọn 3-4 phù hợp):**
-- Thread disentanglement.
-- Temporal state tracking.
-- Uncertainty score.
-- Workload summary dashboard.
+## 7. success criteria ( tiêu chí để thành công)
+nhận diện chính xác tt nhất bao nhiêu 80%
+phát hiện thay đổi deadline, người phụ trách bao nhiêu 70%
+mỗi task và thay đổi quan trọng có thể truy về tin nhắn nguồn có
+người dung kiểm tra và sửa kết quả của AI
+## 8. Rủi ro chính
+AI hiểu sai hội thoại đan xen hoặc deadline tương đối; nguồn sửa/xóa; xử lý trùng; dữ liệu vượt quyền; hiểu nhầm giao diện mẫu hoặc eval offline là sản phẩm đã hoàn thành. Cần nghiệm thu theo PRD, UI flow và review kỹ thuật.
